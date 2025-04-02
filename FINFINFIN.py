@@ -11,6 +11,10 @@ def load_db1():
     query = 'SELECT * FROM abilities'
     df = pd.read_sql(query, conn)
     conn.close()
+    # 공백과 특수문자 문제 해결
+    df['능력'] = df['능력'].str.replace(r'\s+', ' ', regex=True).str.strip()
+    df['장애유형'] = df['장애유형'].str.replace(r'\s+', ' ', regex=True).str.strip()
+    df['정도'] = df['정도'].str.replace(r'\s+', ' ', regex=True).str.strip()
     return df
 
 db1 = load_db1()
@@ -36,7 +40,7 @@ def match_job(name, disability_type, disability_degree):
         company, job_name, abilities = row['회사명'], row['업무이름'], row['요구능력'].split(', ')
         score = 0
         for ability in abilities:
-            ability_score = db1[(db1['능력'] == ability) & (db1['장애유형'] == disability_type) & (db1['정도'] == disability_degree)]['점수'].sum()
+            ability_score = db1[(db1['능력'].str.strip() == ability.strip()) & (db1['장애유형'].str.strip() == disability_type.strip()) & (db1['정도'].str.strip() == disability_degree.strip())]['점수'].sum()
             score += ability_score
         matching_results.append((company, job_name, score))
     matching_results.sort(key=lambda x: x[2], reverse=True)
